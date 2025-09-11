@@ -15,7 +15,7 @@ class CELL_PHONE_TASK():
                  base_url=base_url,
                  model_name=model_name,
                  max_results=2,
-                 score_threshold=0.4,
+                 score_threshold=0.3,
                  mode="vedio"):
         self.mode = mode
         self.score_threshold = score_threshold
@@ -57,13 +57,13 @@ class CELL_PHONE_TASK():
         detected, message = False, "No object detected in hand"
 
         img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        hand_results = self.hands.process(img_rgb)
+        # hand_results = self.hands.process(img_rgb)
 
-        if hand_results.multi_hand_landmarks:
-            for hand_landmarks in hand_results.multi_hand_landmarks:
-                # Draw hand landmarks (optional)
-                self.mp_drawing.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
-
+        # if hand_results.multi_hand_landmarks:
+        #     for hand_landmarks in hand_results.multi_hand_landmarks:
+                # # Draw hand landmarks (optional)
+                # self.mp_drawing.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
+        if True:
             # Detect on the full frame (can switch to cropped ROI if desired)
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB,
                                 data=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
@@ -73,14 +73,19 @@ class CELL_PHONE_TASK():
             for det in detection_result.detections:
                 category = det.categories[0].category_name or "object"
                 score = det.categories[0].score
-                if category.lower() not in {"cell phone", "cellphone", "mobile phone", "phone"} or score < self.score_threshold:
+                bbox = det.bounding_box
+                x1, y1 = int(bbox.origin_x), int(bbox.origin_y)
+                x2, y2 = int(bbox.origin_x + bbox.width), int(bbox.origin_y + bbox.height)
+                
+                if (
+                    (category.lower() not in {"cell phone", "cellphone", "mobile phone", "phone"}) or
+                    (score < self.score_threshold)
+                ):
                     continue
 
                 detected = True
                 message = f"{category} ({score:.2f})"
-                bbox = det.bounding_box
-                x1, y1 = int(bbox.origin_x), int(bbox.origin_y)
-                x2, y2 = int(bbox.origin_x + bbox.width), int(bbox.origin_y + bbox.height)
+                
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0,0,255), 2)
                 cv2.putText(frame, message, (x1, max(0, y1-10)),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255), 2)
