@@ -13,7 +13,7 @@ import time
 import pathlib
 
 class HAND_TASK():
-    def __init__(self):
+    def __init__(self, boundary = [0.2, 0.5, 0.8, 0.98]):
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
@@ -22,16 +22,17 @@ class HAND_TASK():
             min_tracking_confidence=0.5
         )
         self.mp_drawing = mp.solutions.drawing_utils
+        self.boundary = boundary
 
 
     def process(self, frame) -> Tuple[bool, str, np.ndarray]:
-        h, w, _,  = frame.shape
+        h, w, _  = frame.shape
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.hands.process(frame_rgb)
 
         # Define steering wheel region (adjust this based on your camera angle)
-        roi_top_left = (int(w * 0.2), int(h * 0.5))
-        roi_bottom_right = (int(w * 0.8), int(h * 0.98))
+        roi_top_left = (int(w * self.boundary[0]), int(h * self.boundary[1]))
+        roi_bottom_right = (int(w * self.boundary[2]), int(h * self.boundary[3]))
         cv2.rectangle(frame, roi_top_left, roi_bottom_right, (0, 255, 0), 2)
 
         hands_on_wheel = False

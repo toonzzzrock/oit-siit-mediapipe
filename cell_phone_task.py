@@ -6,8 +6,8 @@ import mediapipe as mp
 import cv2
 
 class CELL_PHONE_TASK():
-    base_url = 'https://storage.googleapis.com/mediapipe-tasks/object_detector/'
-    model_name = 'efficientdet_lite0_fp32.tflite'
+    base_url = 'https://storage.googleapis.com/mediapipe-tasks/object_detector_without_nms/'
+    model_name = 'efficientdet_lite0_int8_no_nms.tflite'
     model_folder_path = r'.\learned_models\mediapipe'  # may be relative at source, we resolve it
 
     def __init__(self,
@@ -15,14 +15,15 @@ class CELL_PHONE_TASK():
                  base_url=base_url,
                  model_name=model_name,
                  max_results=2,
-                 score_threshold=0.2,
-                 mode="video"):
+                 score_threshold=0.4,
+                 mode="vedio"):
         self.mode = mode
+        self.score_threshold = score_threshold
         rmode = mp.tasks.vision.RunningMode.IMAGE if mode=="image" else mp.tasks.vision.RunningMode.VIDEO
 
         # 1) Resolve to ABSOLUTE path (prevents site-packages prefixing your path)
-        model_path = self._ensure_model(base_url, model_folder_path, model_name)
-        model_path = Path(r"C:\oit\py25en\source\projects\learned_models\mediapipe\efficientdet_lite0_fp32.tflite").resolve()
+        model_path = Path(self._ensure_model(base_url, model_folder_path, model_name)).resolve()
+        # model_path = r"C:\oit\py25en\source\projects\learned_models\mediapipe\efficientdet_lite0_fp32.tflite"
         buf = model_path.read_bytes()
 
         options = mp.tasks.vision.ObjectDetectorOptions(
@@ -59,7 +60,6 @@ class CELL_PHONE_TASK():
         hand_results = self.hands.process(img_rgb)
 
         if hand_results.multi_hand_landmarks:
-            h, w, _ = frame.shape
             for hand_landmarks in hand_results.multi_hand_landmarks:
                 # Draw hand landmarks (optional)
                 self.mp_drawing.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
@@ -73,7 +73,7 @@ class CELL_PHONE_TASK():
             for det in detection_result.detections:
                 category = det.categories[0].category_name or "object"
                 score = det.categories[0].score
-                if category.lower() not in {"cell phone", "cellphone", "mobile phone", "phone"}:
+                if category.lower() not in {"cell phone", "cellphone", "mobile phone", "phone"} or score < self.score_threshold:
                     continue
 
                 detected = True

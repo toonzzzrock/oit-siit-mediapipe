@@ -70,7 +70,7 @@ class HEAD_DIRECTION_TASK():
                         self.off_start_time = time.time()
                     else:
                         elapsed = time.time() - self.off_start_time
-                        if elapsed >= 3:  # 3秒以上
+                        if elapsed >= 2:  # 3秒以上
                             self.warning_active = True
                 else:
                     # 正面を向いたらリセット
