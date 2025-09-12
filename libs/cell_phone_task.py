@@ -34,13 +34,6 @@ class CELL_PHONE_TASK():
         )
         self.detector = mp.tasks.vision.ObjectDetector.create_from_options(options)
 
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(
-            static_image_mode=False, max_num_hands=2,
-            min_detection_confidence=0.5, min_tracking_confidence=0.5
-        )
-        self.mp_drawing = mp.solutions.drawing_utils
-
         # 2) Monotonic timestamp for VIDEO mode (strictly increasing)
         self._t0 = time.perf_counter()
 
